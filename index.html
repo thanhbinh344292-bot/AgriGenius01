@@ -2,121 +2,199 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>AgriGenius 4.1</title>
+  <title>AgriGenius – Trợ lý nông dân</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #e8f5e9;
       margin: 0;
-      padding: 20px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f1f8f4;
     }
+
     h1 {
-      color: #2e7d32;
       text-align: center;
+      color: #4CAF50;
     }
+
     .card {
-      background: white;
-      border-radius: 12px;
+      background: #fff;
+      border-radius: 14px;
       padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
     }
+
+    ul {
+      padding-left: 18px;
+    }
+
+    li {
+      padding: 6px 0;
+      cursor: pointer;
+    }
+
+    .done {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
     button {
       background: #4CAF50;
       color: white;
       border: none;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 8px;
+      font-weight: bold;
     }
-    .done {
-      text-decoration: line-through;
-      color: gray;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    ul {
-      padding-left: 20px;
+
+    #botReply {
+      margin-top: 10px;
+      font-style: italic;
     }
   </style>
 </head>
+
 <body>
 
-<h1>🌱 AgriGenius 4.1</h1>
+<h1>🌱 AgriGenius</h1>
 
 <div class="card">
-  <h3>📋 Công việc hôm nay</h3>
-  <ul id="tasks"></ul>
+  <h3>📋 Việc hôm nay</h3>
+  <ul id="taskList"></ul>
 </div>
 
 <div class="card">
   <h3>🤖 Trợ lý nông dân</h3>
-  <input id="chatInput" placeholder="Hỏi gì cũng được..." />
-  <button onclick="chat()">Gửi</button>
-  <p id="chatReply"></p>
+  <input id="userInput" placeholder="Hỏi gì cũng được..." />
+  <button onclick="send()">Gửi</button>
+  <div id="botReply"></div>
 </div>
 
 <div class="card">
-  <h3>🔊 Nhắc nhở</h3>
-  <button onclick="speak()">Nhắc việc</button>
+  <h3>🔊 Nhắc việc</h3>
+  <button onclick="speakReminder()">Nhắc tôi ra vườn</button>
 </div>
 
 <script>
-  const defaultTasks = [
+  // ===== TO-DO =====
+  const DEFAULT_TASKS = [
     "💧 Tưới nước",
     "🌾 Bón phân",
     "🐛 Kiểm tra sâu bệnh"
   ];
 
   function loadTasks() {
-    const saved = JSON.parse(localStorage.getItem("tasks")) || defaultTasks.map(t => ({ text: t, done: false }));
-    const ul = document.getElementById("tasks");
-    ul.innerHTML = "";
-    saved.forEach((task, index) => {
+    return JSON.parse(localStorage.getItem("tasks")) ||
+      DEFAULT_TASKS.map(t => ({ text: t, done: false }));
+  }
+
+  function saveTasks(tasks) {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    const tasks = loadTasks();
+
+    tasks.forEach((t, i) => {
       const li = document.createElement("li");
-      li.textContent = task.text;
-      if (task.done) li.classList.add("done");
-      li.onclick = () => toggleTask(index);
-      ul.appendChild(li);
+      li.textContent = t.text;
+      if (t.done) li.className = "done";
+      li.onclick = () => toggleTask(i);
+      list.appendChild(li);
     });
   }
 
   function toggleTask(index) {
-    const tasks = JSON.parse(localStorage.getItem("tasks"));
+    const tasks = loadTasks();
     tasks[index].done = !tasks[index].done;
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    loadTasks();
+    saveTasks(tasks);
+    renderTasks();
   }
 
-  if (!localStorage.getItem("tasks"))
-    localStorage.setItem(
-      "tasks",
-      JSON.stringify(defaultTasks.map(t => ({ text: t, done: false })))
-    );
+  renderTasks();
 
-  loadTasks();
-
-  function chat() {
-    const text = document.getElementById("chatInput").value.toLowerCase();
-    let reply = "Ừ, làm từ từ thôi, nông nghiệp là chuyện đường dài 🌱";
-
-    if (text.includes("mệt")) reply = "Mệt thì nghỉ xíu, cây còn đó mà.";
-    if (text.includes("bón")) reply = "Bón phân nhớ coi thời tiết nghen, đừng mưa là uổng.";
-    if (text.includes("tưới")) reply = "Tưới sáng sớm hoặc chiều mát là ngon nhất.";
-    if (text.includes("bao lâu")) reply = "Cái này tùy cây, nhưng đều tay là ổn.";
-
-    document.getElementById("chatReply").innerText = reply;
+  // ===== TRỢ LÝ GIẢ LẬP =====
+  function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  function speak() {
+  function send() {
+    const input = document.getElementById("userInput");
+    const reply = document.getElementById("botReply");
+    const q = input.value.toLowerCase().trim();
+
+    let a = "";
+
+    if (!q) {
+      a = "Có hỏi thì mình mới nói chớ 🌱";
+    }
+    else if (q.includes("chào")) {
+      a = random([
+        "Chào bạn, hôm nay ra vườn chưa?",
+        "Ừ mình đây, hỏi gì nè.",
+        "Chào nhen, cây cối sao rồi?"
+      ]);
+    }
+    else if (q.includes("vàng lá")) {
+      a = random([
+        "Vàng lá thường do thiếu đạm hoặc úng nước.",
+        "Coi lại đất có ướt quá không nghen.",
+        "Nếu vàng từ lá già lên là thiếu dinh dưỡng."
+      ]);
+    }
+    else if (q.includes("tưới")) {
+      a = random([
+        "Tưới sáng sớm là ngon nhất.",
+        "Trưa nắng đừng tưới, cây dễ sốc.",
+        "Tưới vừa đủ thôi, đừng thương quá."
+      ]);
+    }
+    else if (q.includes("bón")) {
+      a = random([
+        "Bón phân nhớ coi thời tiết.",
+        "Ít mà đều còn hơn dồn một cục.",
+        "Bón xong nhớ tưới nhẹ."
+      ]);
+    }
+    else if (q.includes("mệt")) {
+      a = random([
+        "Mệt thì nghỉ, đất đâu có chạy mất.",
+        "Làm nông là đường dài.",
+        "Uống nước cái đã rồi làm tiếp."
+      ]);
+    }
+    else {
+      a = random([
+        "Bạn nói rõ thêm chút mình coi.",
+        "Chuyện này phải coi thực tế ngoài vườn.",
+        "Để mình nghĩ thử nhen."
+      ]);
+    }
+
+    reply.innerText = a;
+
+    const voice = new SpeechSynthesisUtterance(a);
+    voice.lang = "vi-VN";
+    speechSynthesis.speak(voice);
+
+    input.value = "";
+  }
+
+  // ===== NHẮC VIỆC =====
+  function speakReminder() {
     const msg = new SpeechSynthesisUtterance(
-      "Nhắc nhẹ nè, tới giờ tưới nước với kiểm tra sâu bệnh rồi đó."
+      "Nhắc nhẹ nè, tới giờ ra vườn rồi đó."
     );
     msg.lang = "vi-VN";
     speechSynthesis.speak(msg);
