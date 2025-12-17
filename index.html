@@ -199,7 +199,94 @@
     msg.lang = "vi-VN";
     speechSynthesis.speak(msg);
   }
-</script>
+</scri<script>
+  let recognition;
+
+  function startListening() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
+      return;
+    }
+
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "vi-VN";
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
+    };
+
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      document.getElementById("userInput").value = text;
+      send();
+    };
+
+    recognition.onerror = () => {
+      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
+    };
+
+    recognition.start();
+  }
+</script><script>
+  let recognition;
+
+  function startListening() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
+      return;
+    }
+
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "vi-VN";
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
+    };
+
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      document.getElementById("userInput").value = text;
+      send();
+    };
+
+    recognition.onerror = () => {
+      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
+    };
+
+    recognition.start();
+  }
+</script><script>
+  let recognition;
+
+  function startListening() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
+      return;
+    }
+
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "vi-VN";
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
+    };
+
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      document.getElementById("userInput").value = text;
+      send();
+    };
+
+    recognition.onerror = () => {
+      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
+    };
+
+    recognition.start();
+  }
+</script>pt>
 
 </body>
 </html>
