@@ -1,62 +1,41 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>AgriGenius – Trợ lý nông dân</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta charset="UTF-8">
+  <title>AgriGenius Mini</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      margin: 0;
-      padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f1f8f4;
+      padding: 16px;
     }
-
     h1 {
       text-align: center;
       color: #4CAF50;
     }
-
     .card {
-      background: #fff;
-      border-radius: 14px;
+      background: white;
       padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.1);
     }
-
-    ul {
-      padding-left: 18px;
-    }
-
-    li {
-      padding: 6px 0;
-      cursor: pointer;
-    }
-
-    .done {
-      text-decoration: line-through;
-      color: #999;
-    }
-
     input, button {
       width: 100%;
       padding: 12px;
       margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 16px;
     }
-
     button {
       background: #4CAF50;
       color: white;
       border: none;
       font-weight: bold;
     }
-
-    #botReply {
+    #reply {
       margin-top: 10px;
       font-style: italic;
     }
@@ -68,225 +47,66 @@
 <h1>🌱 AgriGenius</h1>
 
 <div class="card">
-  <h3>📋 Việc hôm nay</h3>
-  <ul id="taskList"></ul>
-</div>
-
-<div class="card">
   <h3>🤖 Trợ lý nông dân</h3>
-  <input id="userInput" placeholder="Hỏi gì cũng được..." />
-  <button onclick="send()">Gửi</button>
-  <div id="botReply"></div>
+  <input id="question" placeholder="Hỏi gì cũng được..." />
+  <button onclick="ask()">Gửi</button>
+  <div id="reply"></div>
 </div>
 
 <div class="card">
-  <h3>🔊 Nhắc việc</h3>
-  <button onclick="speakReminder()">Nhắc tôi ra vườn</button>
+  <h3>🌤️ Thời tiết</h3>
+  <button onclick="openWeather()">Xem thời tiết khu vực</button>
+</div>
+
+<div class="card">
+  <h3>🔎 Tra Google</h3>
+  <input id="google" placeholder="Nhập nội dung cần tìm..." />
+  <button onclick="searchGoogle()">Tìm Google</button>
+</div>
+
+<div class="card">
+  <h3>🎵 Nhạc làm vườn</h3>
+  <button onclick="playMusic()">Mở nhạc</button>
 </div>
 
 <script>
-  // ===== TO-DO =====
-  const DEFAULT_TASKS = [
-    "💧 Tưới nước",
-    "🌾 Bón phân",
-    "🐛 Kiểm tra sâu bệnh"
-  ];
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "vi-VN";
+  speechSynthesis.speak(msg);
+}
 
-  function loadTasks() {
-    return JSON.parse(localStorage.getItem("tasks")) ||
-      DEFAULT_TASKS.map(t => ({ text: t, done: false }));
-  }
+function ask() {
+  const q = document.getElementById("question").value.toLowerCase();
+  let a = "Cứ làm từ từ, cây không phụ công đâu 🌱";
 
-  function saveTasks(tasks) {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }
+  if (q.includes("chào")) a = "Chào bạn, hôm nay ra vườn chưa?";
+  else if (q.includes("vàng lá")) a = "Vàng lá thường do thiếu dinh dưỡng hoặc úng nước.";
+  else if (q.includes("tưới")) a = "Tưới sáng sớm là tốt nhất.";
+  else if (q.includes("bón")) a = "Bón phân nhớ coi thời tiết.";
+  else if (q.includes("mệt")) a = "Mệt thì nghỉ chút, giữ sức làm đường dài.";
 
-  function renderTasks() {
-    const list = document.getElementById("taskList");
-    list.innerHTML = "";
-    const tasks = loadTasks();
+  document.getElementById("reply").innerText = a;
+  speak(a);
+}
 
-    tasks.forEach((t, i) => {
-      const li = document.createElement("li");
-      li.textContent = t.text;
-      if (t.done) li.className = "done";
-      li.onclick = () => toggleTask(i);
-      list.appendChild(li);
-    });
-  }
+function searchGoogle() {
+  const q = document.getElementById("google").value;
+  if (!q) return alert("Nhập nội dung cần tìm");
+  window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
+}
 
-  function toggleTask(index) {
-    const tasks = loadTasks();
-    tasks[index].done = !tasks[index].done;
-    saveTasks(tasks);
-    renderTasks();
-  }
+function playMusic() {
+  window.open(
+    "https://www.youtube.com/results?search_query=nhạc+làm+vườn+thư+giãn",
+    "_blank"
+  );
+}
 
-  renderTasks();
-
-  // ===== TRỢ LÝ GIẢ LẬP =====
-  function random(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function send() {
-    const input = document.getElementById("userInput");
-    const reply = document.getElementById("botReply");
-    const q = input.value.toLowerCase().trim();
-
-    let a = "";
-
-    if (!q) {
-      a = "Có hỏi thì mình mới nói chớ 🌱";
-    }
-    else if (q.includes("chào")) {
-      a = random([
-        "Chào bạn, hôm nay ra vườn chưa?",
-        "Ừ mình đây, hỏi gì nè.",
-        "Chào nhen, cây cối sao rồi?"
-      ]);
-    }
-    else if (q.includes("vàng lá")) {
-      a = random([
-        "Vàng lá thường do thiếu đạm hoặc úng nước.",
-        "Coi lại đất có ướt quá không nghen.",
-        "Nếu vàng từ lá già lên là thiếu dinh dưỡng."
-      ]);
-    }
-    else if (q.includes("tưới")) {
-      a = random([
-        "Tưới sáng sớm là ngon nhất.",
-        "Trưa nắng đừng tưới, cây dễ sốc.",
-        "Tưới vừa đủ thôi, đừng thương quá."
-      ]);
-    }
-    else if (q.includes("bón")) {
-      a = random([
-        "Bón phân nhớ coi thời tiết.",
-        "Ít mà đều còn hơn dồn một cục.",
-        "Bón xong nhớ tưới nhẹ."
-      ]);
-    }
-    else if (q.includes("mệt")) {
-      a = random([
-        "Mệt thì nghỉ, đất đâu có chạy mất.",
-        "Làm nông là đường dài.",
-        "Uống nước cái đã rồi làm tiếp."
-      ]);
-    }
-    else {
-      a = random([
-        "Bạn nói rõ thêm chút mình coi.",
-        "Chuyện này phải coi thực tế ngoài vườn.",
-        "Để mình nghĩ thử nhen."
-      ]);
-    }
-
-    reply.innerText = a;
-
-    const voice = new SpeechSynthesisUtterance(a);
-    voice.lang = "vi-VN";
-    speechSynthesis.speak(voice);
-
-    input.value = "";
-  }
-
-  // ===== NHẮC VIỆC =====
-  function speakReminder() {
-    const msg = new SpeechSynthesisUtterance(
-      "Nhắc nhẹ nè, tới giờ ra vườn rồi đó."
-    );
-    msg.lang = "vi-VN";
-    speechSynthesis.speak(msg);
-  }
-</scri<script>
-  let recognition;
-
-  function startListening() {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
-      return;
-    }
-
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "vi-VN";
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
-    };
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      document.getElementById("userInput").value = text;
-      send();
-    };
-
-    recognition.onerror = () => {
-      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
-    };
-
-    recognition.start();
-  }
-</script><script>
-  let recognition;
-
-  function startListening() {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
-      return;
-    }
-
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "vi-VN";
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
-    };
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      document.getElementById("userInput").value = text;
-      send();
-    };
-
-    recognition.onerror = () => {
-      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
-    };
-
-    recognition.start();
-  }
-</script><script>
-  let recognition;
-
-  function startListening() {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert("Trình duyệt chưa hỗ trợ nói chuyện 😢");
-      return;
-    }
-
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "vi-VN";
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      document.getElementById("botReply").innerText = "🎧 Đang nghe bạn nói...";
-    };
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      document.getElementById("userInput").value = text;
-      send();
-    };
-
-    recognition.onerror = () => {
-      document.getElementById("botReply").innerText = "❌ Không nghe rõ, nói lại thử nhen.";
-    };
-
-    recognition.start();
-  }
-</script>pt>
+function openWeather() {
+  window.open("https://www.google.com/search?q=thời+tiết+hiện+tại", "_blank");
+}
+</script>
 
 </body>
 </html>
